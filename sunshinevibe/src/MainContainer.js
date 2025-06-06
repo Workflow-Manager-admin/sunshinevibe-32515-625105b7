@@ -51,8 +51,8 @@ function MainContainer() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Insert your OpenWeatherMap API key here or use env variable
-  const OPENWEATHER_API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY';
+  // Use the OpenWeatherMap API key from environment variable
+  const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHERMAP_API_KEY || 'YOUR_OPENWEATHERMAP_API_KEY';
 
   // Handles city change
   function onCityInput(e) {
