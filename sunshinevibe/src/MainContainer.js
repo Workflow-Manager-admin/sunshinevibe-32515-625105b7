@@ -51,8 +51,8 @@ function MainContainer() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Use the OpenWeatherMap API key from environment variable
-  const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHERMAP_API_KEY || 'YOUR_OPENWEATHERMAP_API_KEY';
+  // Retrieve OpenWeatherMap API key from environment variable only (do not fallback to a placeholder).
+  const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHERMAP_API_KEY;
 
   // Handles city change
   function onCityInput(e) {
@@ -75,6 +75,10 @@ function MainContainer() {
     }
     if (!mood) {
       setError('Please select a mood');
+      return;
+    }
+    if (!OPENWEATHER_API_KEY) {
+      setError('API key for OpenWeatherMap not found. Please contact the administrator to set REACT_APP_OPENWEATHERMAP_API_KEY in your environment.');
       return;
     }
     setLoading(true);
