@@ -96,13 +96,16 @@ function MainContainer() {
         return;
       }
       const data = await resp.json();
+      // Extract temperature and weather condition for UI display
+      const temperature = data?.main?.temp;
+      const weatherCondition = data?.weather?.[0]?.main;
       setWeather({
         name: data.name,
         country: data.sys.country,
-        temp: Math.round(data.main.temp),
-        feels_like: Math.round(data.main.feels_like),
-        description: data.weather[0].description,
-        main: data.weather[0].main
+        temp: temperature !== undefined ? Math.round(temperature) : 'N/A',
+        feels_like: data?.main?.feels_like !== undefined ? Math.round(data.main.feels_like) : 'N/A',
+        description: data?.weather?.[0]?.description || '',
+        main: weatherCondition || ''
       });
     } catch (e) {
       setError('Error fetching weather. Please try again later.');
