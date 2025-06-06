@@ -39,6 +39,135 @@ function getWeatherIcon(condition) {
   return '🌈';
 }
 
+/**
+ * Predefined (hardcoded) mappings for (mood, weather) combinations,
+ * for motivational quotes and outfit suggestions.
+ */
+const MOOD_WEATHER_COMBOS = {
+  happy: {
+    Clear: {
+      quote: "Let the sunshine match your smile today!",
+      outfit: "Sunglasses, bright tee, and comfy shorts"
+    },
+    Rain: {
+      quote: "Keep dancing—rain can’t dampen your spirit!",
+      outfit: "Cheery raincoat and waterproof boots"
+    },
+    Clouds: {
+      quote: "Even on cloudy days, happiness shines through.",
+      outfit: "Fun sweater and light scarf"
+    },
+    Snow: {
+      quote: "Snow brings sparkle—just like your mood!",
+      outfit: "Cozy beanie, parka, and mittens"
+    },
+    Default: {
+      quote: "Shine bright, whatever the weather!",
+      outfit: "Your favorite outfit"
+    }
+  },
+  sad: {
+    Clear: {
+      quote: "Blue skies bring hope. Brighter days ahead.",
+      outfit: "Soft hoodie and light jeans"
+    },
+    Rain: {
+      quote: "Let the rain wash your worries away.",
+      outfit: "Warm jumper and rain boots"
+    },
+    Clouds: {
+      quote: "Clouds pass by—so do tough times.",
+      outfit: "Comfort clothes and big scarf"
+    },
+    Snow: {
+      quote: "A fresh start, like untouched snow.",
+      outfit: "Fluffy jacket and knitted hat"
+    },
+    Default: {
+      quote: "It’s okay to feel blue. Treat yourself with kindness.",
+      outfit: "Whatever feels coziest"
+    }
+  },
+  tired: {
+    Clear: {
+      quote: "Catch some rays, recharge your energy.",
+      outfit: "Relaxed joggers and tee"
+    },
+    Rain: {
+      quote: "Perfect weather for a nap and hot drink.",
+      outfit: "Comfy hoodie and PJs"
+    },
+    Clouds: {
+      quote: "Rest up, soon the sun will shine again.",
+      outfit: "Stretchy pants and sweater"
+    },
+    Snow: {
+      quote: "Snuggle weather! Time to unwind.",
+      outfit: "Fuzzy socks, thick jumper, blanket"
+    },
+    Default: {
+      quote: "Rest is productive too.",
+      outfit: "Whatever helps you relax"
+    }
+  },
+  anxious: {
+    Clear: {
+      quote: "Take a deep breath—clear skies ahead.",
+      outfit: "Soft shirt, loose pants, comfy shoes"
+    },
+    Rain: {
+      quote: "Listen to the rain and let stress drift away.",
+      outfit: "Layered sweater and comfy jeans"
+    },
+    Clouds: {
+      quote: "Clouds are temporary; calm is coming.",
+      outfit: "Casual dress and cardigan"
+    },
+    Snow: {
+      quote: "Let the snowfall bring you peace.",
+      outfit: "Warm parka and soft mitts"
+    },
+    Default: {
+      quote: "You’ve weathered storms before—you’ll get through this too.",
+      outfit: "Whatever makes you feel safe"
+    }
+  },
+  excited: {
+    Clear: {
+      quote: "It’s a perfect day to make awesome memories!",
+      outfit: "Trendy shades and bright clothes"
+    },
+    Rain: {
+      quote: "Rain just adds drama to your adventures!",
+      outfit: "Colorful jacket and cool boots"
+    },
+    Clouds: {
+      quote: "Clouds can’t dim your sparkle.",
+      outfit: "Flashy tee and fun necklace"
+    },
+    Snow: {
+      quote: "Let’s play! Snow can’t slow you down.",
+      outfit: "Sporty coat and warm hat"
+    },
+    Default: {
+      quote: "Today will be epic—own it!",
+      outfit: "Your boldest outfit"
+    }
+  }
+};
+
+/**
+ * Map weather "main" condition to a background image.
+ * Use local assets/URLs if provided, else public domain image URLs as placeholders.
+ */
+const WEATHER_BACKGROUND_IMAGES = {
+  Clear: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80', // Sunny
+  Clouds: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=1000&q=80', // Cloudy
+  Rain: 'https://images.unsplash.com/photo-1465101178521-c1a9136a06b9?auto=format&fit=crop&w=1000&q=80', // Rainy
+  Snow: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1000&q=80', // Snowy
+  Default: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1000&q=80'
+};
+
 // PUBLIC_INTERFACE
 function MainContainer() {
   /**
@@ -118,29 +247,44 @@ function MainContainer() {
     return MOOD_OPTIONS.find((opt) => opt.value === v) || {};
   }
 
-  // Uplifting feedback text per mood
-  function getUpliftingMessage(mood) {
-    switch (mood) {
-      case 'happy':
-        return "Keep shining! Spread your joy to the world ✨";
-      case 'sad':
-        return "Even cloudy days pass. Sending you sunshine! ☀️";
-      case 'tired':
-        return "Rest up! The world will wait for your energy 🌱";
-      case 'anxious':
-        return "Breathe deep. Blue skies are ahead 💙";
-      case 'excited':
-        return "Your excitement is contagious! Let's make today amazing! 🚀";
-      default:
-        return '';
-    }
+  /**
+   * Returns motivational quote and outfit suggestion given mood and weather main condition.
+   */
+  function getQuoteAndOutfit(mood, weatherMain) {
+    if (!mood) return { quote: '', outfit: '' };
+    const mapping = MOOD_WEATHER_COMBOS[mood] || {};
+    // Default to 'Default' if the main weather doesn't exist in mapping
+    const entry = mapping[weatherMain] || mapping.Default || { quote: '', outfit: '' };
+    return entry;
   }
+
+  /**
+   * Returns the background image URL for the given weather main.
+   */
+  function getWeatherBackgroundImage(weatherMain) {
+    if (!weatherMain) return WEATHER_BACKGROUND_IMAGES.Default;
+    return WEATHER_BACKGROUND_IMAGES[weatherMain] || WEATHER_BACKGROUND_IMAGES.Default;
+  }
+
+  // Main App rendering
+  // Pick background image if weather is known, else default gradient as before.
+  const bgImageUrl =
+    weather && weather.main ? getWeatherBackgroundImage(weather.main) : null;
+
+  // If weather + mood, get the motivational quote and outfit.
+  const { quote: comboQuote, outfit: outfitSuggestion } =
+    weather && mood
+      ? getQuoteAndOutfit(mood, weather.main)
+      : { quote: '', outfit: '' };
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: `linear-gradient(120deg, ${COLORS.secondary} 60%, ${COLORS.primary} 100%)`
+        background: bgImageUrl
+          ? `linear-gradient(rgba(255,255,255,0.81), rgba(0,0,0,0.23)), url(${bgImageUrl}) center/cover no-repeat`
+          : `linear-gradient(120deg, ${COLORS.secondary} 60%, ${COLORS.primary} 100%)`,
+        transition: 'background-image 0.75s cubic-bezier(0.4,0,0.2,1)'
       }}
     >
       {/* App Title */}
@@ -256,14 +400,15 @@ function MainContainer() {
           style={{
             maxWidth: 420,
             margin: '38px auto auto',
-            background: '#fff',
+            background: 'rgba(255,255,255,0.87)',
             borderRadius: 16,
-            boxShadow: '0 4px 32px rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 32px rgba(0,0,0,0.07)',
             border: `3px solid ${MOOD_ACCENTS[mood] || COLORS.accent}`,
             position: 'relative',
             padding: '32px 26px 24px 26px',
             textAlign: 'center',
-            zIndex: 2
+            zIndex: 2,
+            backdropFilter: bgImageUrl ? 'blur(1px)' : 'none'
           }}
         >
           {/* Mood icon */}
@@ -308,14 +453,34 @@ function MainContainer() {
               (feels like {weather.feels_like}°C)
             </span>
           </div>
-          <div style={{
-            fontSize: 17,
-            color: MOOD_ACCENTS[mood] || COLORS.primary,
-            fontWeight: 600,
-            marginTop: 18
-          }}>
-            {getUpliftingMessage(mood)}
-          </div>
+
+          {/* NEW: Motivational Quote for combo */}
+          {comboQuote && (
+            <div style={{
+              fontSize: 18,
+              color: COLORS.primary,
+              fontWeight: 600,
+              margin: '22px 0 10px 0',
+              letterSpacing: '0.2px'
+            }}>
+              {/* Typography for motivational quote */}
+              <span role="img" aria-label="sparkle">💡</span> <em>{comboQuote}</em>
+            </div>
+          )}
+
+          {/* NEW: Outfit suggestion */}
+          {outfitSuggestion && (
+            <div style={{
+              fontSize: 16.3,
+              color: '#3b8499',
+              marginBottom: 6,
+              marginTop: 6,
+              fontWeight: 500,
+            }}>
+              <span role="img" aria-label="outfit">👕</span> Outfit Suggestion: <span style={{ fontWeight: 600 }}>{outfitSuggestion}</span>
+            </div>
+          )}
+
         </div>
       )}
 
